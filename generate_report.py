@@ -15,23 +15,55 @@ for file in json_files:
 
         for item in data:
 
-            rows.append({
+            extended = item.get('extendedProperties', {})
 
-                "Subscription":
-                file.split("/")[-1].replace(".json", ""),
+            resource_metadata = item.get('resourceMetadata', {})
+
+            short_desc = item.get('shortDescription', {})
+
+            rows.append({
 
                 "Category":
                 item.get('category'),
 
-                "Impact":
+                "Business Impact":
                 item.get('impact'),
 
                 "Recommendation":
-                item.get('shortDescription', {}).get('problem'),
+                short_desc.get('problem'),
 
-                "Resource":
-                item.get('resourceMetadata', {}).get('resourceId')
+                "Subscription ID":
+                resource_metadata.get('subscriptionId'),
 
+                "Subscription Name":
+                file.split("/")[-1].replace(".json", ""),
+
+                "Resource Group":
+                resource_metadata.get('resourceGroup'),
+
+                "Resource Name":
+                resource_metadata.get('resourceName'),
+
+                "Type":
+                resource_metadata.get('resourceType'),
+
+                "Last Refreshed":
+                item.get('lastUpdated'),
+
+                "Potential Benefits":
+                short_desc.get('solution'),
+
+                "Potential Annual Cost Savings":
+                extended.get('annualSavingsAmount'),
+
+                "Potential Cost Savings Currency":
+                extended.get('savingsCurrency'),
+
+                "Cost Implications":
+                extended.get('costImplication'),
+
+                "Description of Changes":
+                extended.get('recommendedActions')
             })
 
 df = pd.DataFrame(rows)
@@ -46,4 +78,4 @@ with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         index=False
     )
 
-print("Multi Subscription Excel Report Generated")
+print("Enhanced Azure Advisor Report Generated")
