@@ -1,0 +1,54 @@
+name: Azure Advisor Automation
+
+on:
+
+  schedule:
+    - cron: '0 5 * * 1'
+
+  workflow_dispatch:
+
+jobs:
+
+  advisor-report:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+    - name: Fetch Advisor Recommendations
+      run: |
+        az advisor recommendation list \
+        --output json > advisor.json
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Generate Excel Report
+      run: |
+        python generate_report.py
+
+    - name: Send Email
+      env:
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+        CC_EMAIL: ${{ secrets.CC_EMAIL }}
+      run: |
+        python send_mail.py
