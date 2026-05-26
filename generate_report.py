@@ -1,27 +1,38 @@
 import json
+import glob
 import pandas as pd
 from datetime import datetime
 
-with open('advisor.json') as f:
-    data = json.load(f)
-
 rows = []
 
-for item in data:
+json_files = glob.glob("reports/*.json")
 
-    rows.append({
+for file in json_files:
 
-        "Category": item.get('category'),
+    with open(file) as f:
 
-        "Impact": item.get('impact'),
+        data = json.load(f)
 
-        "Recommendation":
-        item.get('shortDescription', {}).get('problem'),
+        for item in data:
 
-        "Resource":
-        item.get('resourceMetadata', {}).get('resourceId')
+            rows.append({
 
-    })
+                "Subscription":
+                file.split("/")[-1].replace(".json", ""),
+
+                "Category":
+                item.get('category'),
+
+                "Impact":
+                item.get('impact'),
+
+                "Recommendation":
+                item.get('shortDescription', {}).get('problem'),
+
+                "Resource":
+                item.get('resourceMetadata', {}).get('resourceId')
+
+            })
 
 df = pd.DataFrame(rows)
 
@@ -35,4 +46,4 @@ with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         index=False
     )
 
-print("Excel Report Generated")
+print("Multi Subscription Excel Report Generated")
